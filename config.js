@@ -21,7 +21,7 @@ const configuracion = {
         posicion: 'superior-izquierda', // Opciones: 'superior-izquierda', 'superior-derecha', 'inferior-izquierda', 'inferior-derecha', 'centro', 'personalizada'
         posicionX: 0,                   // Solo para posición 'personalizada' - distancia desde la izquierda
         posicionY: 0,                   // Solo para posición 'personalizada' - distancia desde arriba
-        margen: 20,                     // Margen desde los bordes de la pantalla (en píxeles)
+        margen: 15,                     // Margen desde los bordes de la pantalla (en píxeles)
         
         // 📏 TAMAÑO DEL WIDGET
         ancho: 384,                     // Ancho del widget en píxeles
@@ -42,9 +42,35 @@ const configuracion = {
         tamanoIcono: 40,                // Tamaño del icono del clima
         
         // 🎭 EFECTOS VISUALES
-        bordeRadio: 20,                 // Redondez de las esquinas (0 = cuadrado, mayor número = más redondeado)
+        bordeRadio: 'circular',                 // Redondez de las esquinas (0 = cuadrado, mayor número = más redondeado, 'circular' = circunferencia perfecta)
         transparencia: 0.8,             // Transparencia del widget (1.0 = opaco, 0.8 = semi-transparente, 0.5 = muy transparente, 0.0 = invisible)
-        sombra: true                    // Mostrar sombra del widget (true o false)
+        sombra: true,                   // Mostrar sombra del widget (true o false)
+        
+        // 💬 MENSAJES PERSONALIZABLES
+        mostrarMensaje: false,           // Mostrar o ocultar completamente el mensaje de temperatura
+        mensajes: {
+            // Mensajes según temperatura (puedes usar {temp} para insertar la temperatura)
+            muyCaliente: {  // Más de 32°
+                texto: 'Hoy estamos a {temp}°<br>momento perfecto para<br><strong>refrescarte</strong>',
+                accion: 'refrescarte'
+            },
+            caliente: {     // 28° - 32°
+                texto: 'Hoy estamos a {temp}°<br>momento perfecto para<br><strong>llenarte de frescura</strong>',
+                accion: 'llenarte de frescura'
+            },
+            templado: {     // 24° - 28°
+                texto: 'Hoy estamos a {temp}°<br>momento perfecto para<br><strong>disfrutar el día</strong>',
+                accion: 'disfrutar el día'
+            },
+            fresco: {       // 20° - 24°
+                texto: 'Hoy estamos a {temp}°<br>momento perfecto para<br><strong>salir a caminar</strong>',
+                accion: 'salir a caminar'
+            },
+            frio: {         // Menos de 20°
+                texto: 'Hoy estamos a {temp}°<br>momento perfecto para<br><strong>algo caliente</strong>',
+                accion: 'algo caliente'
+            }
+        }
     }
 };
 
@@ -117,6 +143,21 @@ const configuracion = {
 // - Para móviles: usa entre 10-20px
 // - El margen NO afecta a la posición 'centro' ni 'personalizada'
 
+// 🔘 EJEMPLOS DE BORDER RADIUS (FORMAS):
+// bordeRadio: 0 - Widget completamente cuadrado (esquinas rectas)
+// bordeRadio: 10 - Esquinas ligeramente redondeadas
+// bordeRadio: 20 - Redondez estándar (valor por defecto)
+// bordeRadio: 30 - Esquinas muy redondeadas
+// bordeRadio: 50 - Esquinas super redondeadas
+// bordeRadio: 'circular' - Widget completamente circular (circunferencia perfecta)
+
+// 💡 CONSEJOS PARA FORMAS:
+// - Para widget circular: usa bordeRadio: 'circular' y ancho/alto iguales
+// - Para look moderno: usa entre 15-25px
+// - Para estilo minimalista: usa 0px (cuadrado)
+// - Para estilo suave: usa entre 30-50px
+// - El widget circular automáticamente se ajusta al menor de ancho/alto
+
 // 🔤 EJEMPLOS DE FUENTES:
 // 'Arial, sans-serif' - Fuente moderna y limpia
 // 'Georgia, serif' - Fuente elegante con serifas
@@ -139,3 +180,95 @@ const configuracion = {
 // - Para sobreponer en videos: usa entre 0.6 y 0.8  
 // - Para efectos sutiles: usa entre 0.3 y 0.6
 // - Combina con sombra: false cuando uses alta transparencia para un look más limpio
+
+// 💬 EJEMPLOS DE MENSAJES PERSONALIZABLES:
+// Los mensajes se activan según la temperatura y puedes usar {temp} para insertar la temperatura actual
+
+// 🔕 CONTROL DE VISIBILIDAD DE MENSAJES:
+// mostrarMensaje: true  - Mostrar mensajes de temperatura (por defecto)
+// mostrarMensaje: false - Ocultar completamente los mensajes (widget minimalista)
+
+// 💡 DISEÑO MINIMALISTA SIN MENSAJES:
+// Para un widget más limpio y minimalista, puedes ocultar los mensajes configurando:
+// mostrarMensaje: false
+// Esto mostrará solo la temperatura, icono, ubicación y fecha/hora
+
+// EJEMPLO PARA CAFETERÍA:
+// muyCaliente: { texto: 'Con {temp}° hace calor<br>¡perfecto para un<br><strong>frappé helado!</strong>', accion: 'frappé helado' }
+// caliente: { texto: 'Hoy tenemos {temp}°<br>¿qué tal un<br><strong>café frío?</strong>', accion: 'café frío' }
+// templado: { texto: 'Con {temp}° el clima está<br>ideal para un<br><strong>café americano</strong>', accion: 'café americano' }
+// fresco: { texto: '{temp}° es perfecto<br>para un<br><strong>café caliente</strong>', accion: 'café caliente' }
+// frio: { texto: 'Con {temp}° necesitas<br>algo que te caliente<br><strong>¡cappuccino!</strong>', accion: 'cappuccino' }
+
+// EJEMPLO PARA HELADERÍA:
+// muyCaliente: { texto: '{temp}° de calor<br>¡hora de un<br><strong>helado XXL!</strong>', accion: 'helado XXL' }
+// caliente: { texto: 'Con {temp}° el día pide<br>un delicioso<br><strong>helado</strong>', accion: 'helado' }
+// templado: { texto: 'Hoy tenemos {temp}°<br>¿te apetece un<br><strong>frozen yogurt?</strong>', accion: 'frozen yogurt' }
+// fresco: { texto: '{temp}° es perfecto<br>para un<br><strong>batido</strong>', accion: 'batido' }
+// frio: { texto: 'Aunque haga {temp}°<br>siempre es buen momento<br>para un <strong>postre</strong>', accion: 'postre' }
+
+// EJEMPLO PARA RESTAURANTE:
+// muyCaliente: { texto: 'Con {temp}° de calor<br>te recomendamos<br><strong>ensaladas frescas</strong>', accion: 'ensaladas frescas' }
+// caliente: { texto: 'Hoy {temp}° perfectos<br>para nuestros<br><strong>platos ligeros</strong>', accion: 'platos ligeros' }
+// templado: { texto: 'Con {temp}° el clima<br>está ideal para<br><strong>almorzar aquí</strong>', accion: 'almorzar aquí' }
+// fresco: { texto: '{temp}° son perfectos<br>para nuestros<br><strong>platos del día</strong>', accion: 'platos del día' }
+// frio: { texto: 'Con {temp}° te calentamos<br>con nuestras<br><strong>sopas caseras</strong>', accion: 'sopas caseras' }
+
+// EJEMPLO PARA GIMNASIO:
+// muyCaliente: { texto: 'Con {temp}° de calor<br>entrena en nuestro<br><strong>gym climatizado</strong>', accion: 'gym climatizado' }
+// caliente: { texto: 'Hoy {temp}° perfectos<br>para<br><strong>entrenar</strong>', accion: 'entrenar' }
+// templado: { texto: '{temp}° ideales<br>para hacer<br><strong>ejercicio</strong>', accion: 'ejercicio' }
+// fresco: { texto: 'Con {temp}° es hora<br>de ponerse en<br><strong>forma</strong>', accion: 'forma' }
+// frio: { texto: 'Aunque haga {temp}°<br>¡calienta motores<br>y ven a <strong>entrenar!</strong>', accion: 'entrenar' }
+
+// 💡 CONSEJOS PARA MENSAJES:
+// - Usa {temp} para insertar la temperatura actual
+// - Mantén los mensajes cortos (máximo 3 líneas)
+// - Usa <strong> para resaltar la acción principal
+// - Adapta el tono al tipo de negocio
+// - Prueba diferentes rangos de temperatura para tu zona
+// - Configura mostrarMensaje: false para un diseño minimalista
+
+// 🎨 EJEMPLOS DE CONFIGURACIONES ESPECIALES:
+
+// CONFIGURACIÓN MINIMALISTA (sin mensajes):
+// mostrarMensaje: false,
+// ancho: 300,
+// alto: 250,
+// bordeRadio: 15
+
+// CONFIGURACIÓN SOLO TEMPERATURA (ultra minimalista):
+// mostrarMensaje: false,
+// tamanoTemperatura: 200,
+// ancho: 250,
+// alto: 150
+
+// CONFIGURACIÓN CORPORATIVA (formal):
+// mostrarMensaje: true,
+// mensajes: {
+//     caliente: { texto: 'Temperatura actual: {temp}°<br>Condiciones<br><strong>ideales</strong>' }
+// }
+
+// CONFIGURACIÓN CIRCULAR (moderna):
+// bordeRadio: 'circular',
+// ancho: 300,
+// alto: 300,
+// mostrarMensaje: false
+
+// CONFIGURACIÓN CIRCULAR CON MENSAJES:
+// bordeRadio: 'circular',
+// ancho: 400,
+// alto: 400,
+// tamanoTemperatura: 80,
+// tamanoMensaje: 18
+
+// CONFIGURACIÓN CUADRADA (minimalista):
+// bordeRadio: 0,
+// ancho: 280,
+// alto: 280,
+// sombra: false
+
+// CONFIGURACIÓN SUPER REDONDEADA:
+// bordeRadio: 50,
+// ancho: 350,
+// alto: 300

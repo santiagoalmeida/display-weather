@@ -144,7 +144,32 @@
                     // Bordes y efectos
                     bordeRadio: config.estilo?.bordeRadio || 20, // Radio de las esquinas
                     transparencia: config.estilo?.transparencia || 1.0, // Transparencia del widget (0.0 a 1.0)
-                    sombra: config.estilo?.sombra || true // Mostrar sombra
+                    sombra: config.estilo?.sombra || true, // Mostrar sombra
+                    
+                    // Mensajes personalizables
+                    mostrarMensaje: config.estilo?.mostrarMensaje !== undefined ? config.estilo.mostrarMensaje : true, // Mostrar o ocultar mensajes
+                    mensajes: config.estilo?.mensajes || {
+                        muyCaliente: {
+                            texto: 'Hoy estamos a {temp}°<br>momento perfecto para<br><strong>refrescarte</strong>',
+                            accion: 'refrescarte'
+                        },
+                        caliente: {
+                            texto: 'Hoy estamos a {temp}°<br>momento perfecto para<br><strong>llenarte de frescura</strong>',
+                            accion: 'llenarte de frescura'
+                        },
+                        templado: {
+                            texto: 'Hoy estamos a {temp}°<br>momento perfecto para<br><strong>disfrutar el día</strong>',
+                            accion: 'disfrutar el día'
+                        },
+                        fresco: {
+                            texto: 'Hoy estamos a {temp}°<br>momento perfecto para<br><strong>salir a caminar</strong>',
+                            accion: 'salir a caminar'
+                        },
+                        frio: {
+                            texto: 'Hoy estamos a {temp}°<br>momento perfecto para<br><strong>algo caliente</strong>',
+                            accion: 'algo caliente'
+                        }
+                    }
                 };
                 
                 this.inicializar();
@@ -206,9 +231,30 @@
                 if (iconoClima) iconoClima.style.fontSize = `${this.ESTILO.tamanoIcono}px`;
                 
                 // Configurar bordes y efectos
-                widget.style.borderRadius = `${this.ESTILO.bordeRadio}px`;
+                this.configurarBordesWidget(widget);
                 if (!this.ESTILO.sombra) {
                     widget.style.boxShadow = 'none';
+                }
+            }
+
+            configurarBordesWidget(widget) {
+                // Configurar border radius (incluyendo opción circular)
+                if (this.ESTILO.bordeRadio === 'circular') {
+                    // Hacer el widget circular: usar el menor de ancho/alto como diámetro
+                    const tamaño = Math.min(this.ESTILO.ancho, this.ESTILO.alto);
+                    
+                    // Ajustar el widget para que sea cuadrado (necesario para círculo perfecto)
+                    widget.style.width = `${tamaño}px`;
+                    widget.style.height = `${tamaño}px`;
+                    
+                    // Aplicar border-radius del 50% para hacer un círculo perfecto
+                    widget.style.borderRadius = '50%';
+                    
+                    console.log(`Widget configurado como círculo de ${tamaño}px de diámetro`);
+                } else {
+                    // Border radius normal (numérico)
+                    const radio = typeof this.ESTILO.bordeRadio === 'number' ? this.ESTILO.bordeRadio : 20;
+                    widget.style.borderRadius = `${radio}px`;
                 }
             }
 
@@ -377,19 +423,36 @@
                 }
                 document.getElementById('ubicacion').textContent = ubicacionTexto;
 
-                // Personalizar mensaje según temperatura
+                // Controlar visibilidad del mensaje
                 const mensaje = document.getElementById('mensaje');
-                if (clima.temperature > 32) {
-                    mensaje.innerHTML = `Hoy estamos a <span>${clima.temperature}</span>°<br>momento perfecto para<br><strong>refrescarte</strong>`;
-                } else if (clima.temperature > 28) {
-                    mensaje.innerHTML = `Hoy estamos a <span>${clima.temperature}</span>°<br>momento perfecto para<br><strong>llenarte de frescura</strong>`;
-                } else if (clima.temperature > 24) {
-                    mensaje.innerHTML = `Hoy estamos a <span>${clima.temperature}</span>°<br>momento perfecto para<br><strong>disfrutar el día</strong>`;
-                } else if (clima.temperature > 20) {
-                    mensaje.innerHTML = `Hoy estamos a <span>${clima.temperature}</span>°<br>momento perfecto para<br><strong>salir a caminar</strong>`;
+                
+                if (!this.ESTILO.mostrarMensaje) {
+                    // Ocultar mensaje completamente
+                    mensaje.style.display = 'none';
+                    return;
                 } else {
-                    mensaje.innerHTML = `Hoy estamos a <span>${clima.temperature}</span>°<br>momento perfecto para<br><strong>algo caliente</strong>`;
+                    // Mostrar mensaje
+                    mensaje.style.display = 'block';
                 }
+
+                // Seleccionar mensaje según temperatura usando configuración
+                let mensajeConfig;
+                
+                if (clima.temperature > 32) {
+                    mensajeConfig = this.ESTILO.mensajes.muyCaliente;
+                } else if (clima.temperature > 28) {
+                    mensajeConfig = this.ESTILO.mensajes.caliente;
+                } else if (clima.temperature > 24) {
+                    mensajeConfig = this.ESTILO.mensajes.templado;
+                } else if (clima.temperature > 20) {
+                    mensajeConfig = this.ESTILO.mensajes.fresco;
+                } else {
+                    mensajeConfig = this.ESTILO.mensajes.frio;
+                }
+                
+                // Reemplazar {temp} con la temperatura actual
+                const textoFinal = mensajeConfig.texto.replace('{temp}', clima.temperature);
+                mensaje.innerHTML = textoFinal;
             }
 
             // Método para cambiar imagen dinámicamente
@@ -439,6 +502,69 @@
                 
                 console.log(`Margen cambiado a: ${margen}px`);
             }
+
+            // Método para cambiar mensajes dinámicamente
+            cambiarMensajes(nuevosMensajes) {
+                this.ESTILO.mensajes = { ...this.ESTILO.mensajes, ...nuevosMensajes };
+                
+                // Actualizar mensaje actual
+                this.actualizarTemperatura();
+                
+                console.log('Mensajes actualizados:', this.ESTILO.mensajes);
+            }
+
+            // Método para cambiar un mensaje específico
+            cambiarMensaje(categoria, nuevoTexto, nuevaAccion = null) {
+                if (this.ESTILO.mensajes[categoria]) {
+                    this.ESTILO.mensajes[categoria].texto = nuevoTexto;
+                    if (nuevaAccion) {
+                        this.ESTILO.mensajes[categoria].accion = nuevaAccion;
+                    }
+                    
+                    // Actualizar mensaje actual si corresponde
+                    this.actualizarTemperatura();
+                    
+                    console.log(`Mensaje '${categoria}' actualizado:`, this.ESTILO.mensajes[categoria]);
+                }
+            }
+
+            // Método para mostrar/ocultar mensajes
+            mostrarOcultarMensaje(mostrar) {
+                this.ESTILO.mostrarMensaje = mostrar;
+                
+                const mensaje = document.getElementById('mensaje');
+                if (mostrar) {
+                    mensaje.style.display = 'block';
+                    // Actualizar mensaje actual
+                    this.actualizarTemperatura();
+                } else {
+                    mensaje.style.display = 'none';
+                }
+                
+                console.log(`Mensajes ${mostrar ? 'activados' : 'desactivados'}`);
+            }
+
+            // Método para cambiar border radius dinámicamente
+            cambiarBordeRadio(nuevoRadio) {
+                this.ESTILO.bordeRadio = nuevoRadio;
+                
+                const widget = document.getElementById('widgetTemperatura');
+                if (widget) {
+                    this.configurarBordesWidget(widget);
+                }
+                
+                console.log(`Border radius cambiado a: ${nuevoRadio}`);
+            }
+
+            // Método para hacer el widget circular
+            hacerCircular() {
+                this.cambiarBordeRadio('circular');
+            }
+
+            // Método para hacer el widget cuadrado
+            hacerCuadrado() {
+                this.cambiarBordeRadio(0);
+            }
         }
 
         // ✅ La configuración ahora se carga desde config.js
@@ -475,6 +601,60 @@
             if (pantalla) {
                 pantalla.cambiarMargen(nuevoMargen);
             }
+        }
+
+        // Función para cambiar mensajes dinámicamente
+        function cambiarMensajes(nuevosMensajes) {
+            if (pantalla) {
+                pantalla.cambiarMensajes(nuevosMensajes);
+            }
+        }
+
+        // Función para cambiar un mensaje específico
+        function cambiarMensaje(categoria, nuevoTexto, nuevaAccion = null) {
+            if (pantalla) {
+                pantalla.cambiarMensaje(categoria, nuevoTexto, nuevaAccion);
+            }
+        }
+
+        // Función para mostrar/ocultar mensajes
+        function mostrarOcultarMensaje(mostrar) {
+            if (pantalla) {
+                pantalla.mostrarOcultarMensaje(mostrar);
+            }
+        }
+
+        // Funciones de utilidad para mensajes
+        function ocultarMensajes() {
+            mostrarOcultarMensaje(false);
+        }
+
+        function mostrarMensajes() {
+            mostrarOcultarMensaje(true);
+        }
+
+        // Función para cambiar border radius dinámicamente
+        function cambiarBordeRadio(nuevoRadio) {
+            if (pantalla) {
+                pantalla.cambiarBordeRadio(nuevoRadio);
+            }
+        }
+
+        // Funciones de utilidad para formas
+        function hacerWidgetCircular() {
+            if (pantalla) {
+                pantalla.hacerCircular();
+            }
+        }
+
+        function hacerWidgetCuadrado() {
+            if (pantalla) {
+                pantalla.hacerCuadrado();
+            }
+        }
+
+        function hacerWidgetRedondeado(radio = 20) {
+            cambiarBordeRadio(radio);
         }
 
         // Funciones de utilidad para transparencia predefinida
