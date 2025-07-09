@@ -21,6 +21,7 @@ const configuracion = {
         posicion: 'superior-izquierda', // Opciones: 'superior-izquierda', 'superior-derecha', 'inferior-izquierda', 'inferior-derecha', 'centro', 'personalizada'
         posicionX: 0,                   // Solo para posición 'personalizada' - distancia desde la izquierda
         posicionY: 0,                   // Solo para posición 'personalizada' - distancia desde arriba
+        margen: 20,                     // Margen desde los bordes de la pantalla (en píxeles)
         
         // 📏 TAMAÑO DEL WIDGET
         ancho: 384,                     // Ancho del widget en píxeles
@@ -42,7 +43,7 @@ const configuracion = {
         
         // 🎭 EFECTOS VISUALES
         bordeRadio: 20,                 // Redondez de las esquinas (0 = cuadrado, mayor número = más redondeado)
-        transparencia: 1.0,             // Transparencia del widget (1.0 = opaco, 0.5 = semi-transparente, 0.0 = invisible)
+        transparencia: 0.8,             // Transparencia del widget (1.0 = opaco, 0.8 = semi-transparente, 0.5 = muy transparente, 0.0 = invisible)
         sombra: true                    // Mostrar sombra del widget (true o false)
     }
 };
@@ -101,6 +102,21 @@ const configuracion = {
 // 'centro' - Centro de la pantalla
 // 'personalizada' - Usa posicionX y posicionY para ubicación exacta
 
+// 📏 EJEMPLOS DE MÁRGENES:
+// margen: 0 - Widget pegado al borde de la pantalla
+// margen: 10 - Margen pequeño (recomendado para pantallas pequeñas)
+// margen: 20 - Margen estándar (valor por defecto, bueno para la mayoría de casos)
+// margen: 30 - Margen medio (bueno para pantallas grandes)
+// margen: 50 - Margen grande (para efectos más espaciosos)
+// margen: 100 - Margen muy grande (para centrar la atención en el contenido)
+
+// 💡 CONSEJOS PARA MÁRGENES:
+// - Para pantallas de 1920x1080: usa entre 30-50px
+// - Para pantallas de 1366x768: usa entre 20-30px
+// - Para tablets: usa entre 15-25px
+// - Para móviles: usa entre 10-20px
+// - El margen NO afecta a la posición 'centro' ni 'personalizada'
+
 // 🔤 EJEMPLOS DE FUENTES:
 // 'Arial, sans-serif' - Fuente moderna y limpia
 // 'Georgia, serif' - Fuente elegante con serifas
@@ -108,3 +124,18 @@ const configuracion = {
 // 'Helvetica, sans-serif' - Fuente profesional
 // 'Courier New, monospace' - Fuente tipo máquina de escribir
 // 'Verdana, sans-serif' - Fuente clara y legible
+
+// 🎭 EJEMPLOS DE TRANSPARENCIA:
+// transparencia: 1.0 - Widget completamente opaco (sin transparencia)
+// transparencia: 0.9 - Ligeramente transparente (recomendado para pantallas publicitarias)
+// transparencia: 0.8 - Semi-transparente (bueno para superponer sobre imágenes complejas)
+// transparencia: 0.7 - Moderadamente transparente
+// transparencia: 0.5 - Muy transparente (permite ver mucho del fondo)
+// transparencia: 0.3 - Casi invisible (solo para efectos especiales)
+// transparencia: 0.0 - Completamente invisible (widget oculto)
+
+// 💡 CONSEJOS PARA LA TRANSPARENCIA:
+// - Para pantallas publicitarias: usa entre 0.8 y 1.0
+// - Para sobreponer en videos: usa entre 0.6 y 0.8  
+// - Para efectos sutiles: usa entre 0.3 y 0.6
+// - Combina con sombra: false cuando uses alta transparencia para un look más limpio

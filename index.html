@@ -121,6 +121,7 @@
                     posicion: config.estilo?.posicion || 'superior-izquierda', // 'superior-izquierda', 'superior-derecha', 'inferior-izquierda', 'inferior-derecha', 'centro', 'personalizada'
                     posicionX: config.estilo?.posicionX || 0, // Posición X personalizada (solo si posicion es 'personalizada')
                     posicionY: config.estilo?.posicionY || 0, // Posición Y personalizada (solo si posicion es 'personalizada')
+                    margen: config.estilo?.margen || 20, // Margen desde los bordes de la pantalla
                     
                     // Tamaño del widget
                     ancho: config.estilo?.ancho || 384,
@@ -188,7 +189,10 @@
                     widget.style.background = this.ESTILO.colorFondo;
                 }
                 widget.style.color = this.ESTILO.colorTexto;
-                widget.style.opacity = this.ESTILO.transparencia;
+                
+                // Configurar transparencia del widget (0.0 = invisible, 1.0 = completamente opaco)
+                const transparencia = Math.max(0, Math.min(1, this.ESTILO.transparencia || 1.0));
+                widget.style.opacity = transparencia;
                 
                 // Configurar tipografía
                 widget.style.fontFamily = this.ESTILO.fuentePrincipal;
@@ -209,7 +213,7 @@
             }
 
             configurarPosicionWidget(widget) {
-                const margen = 20; // Margen desde los bordes
+                const margen = this.ESTILO.margen; // Margen configurable desde la configuración
                 
                 switch (this.ESTILO.posicion) {
                     case 'superior-izquierda':
@@ -393,6 +397,48 @@
                 this.IMAGEN_URL = nuevaUrl;
                 this.configurarImagen();
             }
+
+            // Método para cambiar transparencia dinámicamente
+            cambiarTransparencia(nuevaTransparencia) {
+                // Validar que el valor esté entre 0.0 y 1.0
+                const transparencia = Math.max(0, Math.min(1, nuevaTransparencia));
+                this.ESTILO.transparencia = transparencia;
+                
+                const widget = document.getElementById('widgetTemperatura');
+                if (widget) {
+                    widget.style.opacity = transparencia;
+                }
+                
+                console.log(`Transparencia cambiada a: ${transparencia}`);
+            }
+
+            // Método para cambiar posición dinámicamente
+            cambiarPosicion(nuevaPosicion, x = 0, y = 0) {
+                this.ESTILO.posicion = nuevaPosicion;
+                if (nuevaPosicion === 'personalizada') {
+                    this.ESTILO.posicionX = x;
+                    this.ESTILO.posicionY = y;
+                }
+                
+                const widget = document.getElementById('widgetTemperatura');
+                if (widget) {
+                    this.configurarPosicionWidget(widget);
+                }
+            }
+
+            // Método para cambiar margen dinámicamente
+            cambiarMargen(nuevoMargen) {
+                // Validar que el valor sea positivo
+                const margen = Math.max(0, nuevoMargen);
+                this.ESTILO.margen = margen;
+                
+                const widget = document.getElementById('widgetTemperatura');
+                if (widget) {
+                    this.configurarPosicionWidget(widget);
+                }
+                
+                console.log(`Margen cambiado a: ${margen}px`);
+            }
         }
 
         // ✅ La configuración ahora se carga desde config.js
@@ -408,6 +454,40 @@
             if (pantalla) {
                 pantalla.cambiarImagen(nuevaUrl);
             }
+        }
+
+        // Función para cambiar transparencia dinámicamente
+        function cambiarTransparencia(valor) {
+            if (pantalla) {
+                pantalla.cambiarTransparencia(valor);
+            }
+        }
+
+        // Función para cambiar posición dinámicamente
+        function cambiarPosicion(posicion, x = 0, y = 0) {
+            if (pantalla) {
+                pantalla.cambiarPosicion(posicion, x, y);
+            }
+        }
+
+        // Función para cambiar margen dinámicamente
+        function cambiarMargen(nuevoMargen) {
+            if (pantalla) {
+                pantalla.cambiarMargen(nuevoMargen);
+            }
+        }
+
+        // Funciones de utilidad para transparencia predefinida
+        function hacerWidgetOpaco() {
+            cambiarTransparencia(1.0);
+        }
+
+        function hacerWidgetSemiTransparente() {
+            cambiarTransparencia(0.8);
+        }
+
+        function hacerWidgetMuyTransparente() {
+            cambiarTransparencia(0.5);
         }
     </script>
 </body>
