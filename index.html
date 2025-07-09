@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pantalla Publicitaria</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            overflow: hidden;
+            background: #000;
+        }
+
+        .pantalla-container {
+            position: relative;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: background-image 0.5s ease-in-out;
+        }
+
+        .widget-temperatura {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .temperatura-principal {
+            font-weight: bold;
+            margin: 20px 0;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            line-height: 1;
+        }
+
+        .grados-simbolo {
+            vertical-align: top;
+        }
+
+        .mensaje-temperatura {
+            font-weight: 300;
+            line-height: 1.4;
+            margin-top: 20px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .ubicacion {
+            opacity: 0.9;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+
+        .icono-clima {
+            margin-bottom: 10px;
+        }
+
+        .fecha-hora {
+            margin-top: 10px;
+            opacity: 0.9;
+        }
+
+        .error-imagen {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Cargar archivo de configuración -->
+    <script src="config.js"></script>
+    
+    <div class="pantalla-container" id="pantallaContainer">
+        <div class="widget-temperatura" id="widgetTemperatura">
+            <div class="icono-clima" id="iconoClima">☀️</div>
+            <div class="temperatura-principal">
+                <span id="temperatura">--</span><span class="grados-simbolo">°</span>
+            </div>
+            <div class="mensaje-temperatura" id="mensaje">
+                Hoy estamos a <span id="tempMensaje">--</span>°<br>
+                momento perfecto para<br>
+                <strong>llenarte de frescura</strong>
+            </div>
+            <div class="ubicacion" id="ubicacion">📍 Tu ubicación</div>
+            <div class="fecha-hora" id="fechaHora"></div>
+        </div>
+        <div class="error-imagen" id="errorImagen">Error cargando imagen</div>
+    </div>
+
+    <script>
+        class PantallaPersonalizable {
+            constructor(config = {}) {
+                // 🎯 CONFIGURACIÓN PERSONALIZABLE
+                this.LATITUD = config.latitud || -2.1962;
+                this.LONGITUD = config.longitud || -79.8862;
+                this.CIUDAD = config.ciudad || 'Guayaquil';
+                this.PAIS = config.pais || 'Ecuador';
+                this.IMAGEN_URL = config.imagenUrl || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80';
+                this.ANCHO_PANTALLA = config.anchoPantalla || 1366;
+                this.ALTO_PANTALLA = config.altoPantalla || 768;
+                
+                // 🎨 CONFIGURACIÓN DE ESTILO DEL WIDGET
+                this.ESTILO = {
+                    // Posición del widget
+                    posicion: config.estilo?.posicion || 'superior-izquierda', // 'superior-izquierda', 'superior-derecha', 'inferior-izquierda', 'inferior-derecha', 'centro', 'personalizada'
+                    posicionX: config.estilo?.posicionX || 0, // Posición X personalizada (solo si posicion es 'personalizada')
+                    posicionY: config.estilo?.posicionY || 0, // Posición Y personalizada (solo si posicion es 'personalizada')
+                    
+                    // Tamaño del widget
+                    ancho: config.estilo?.ancho || 384,
+                    alto: config.estilo?.alto || 432,
+                    
+                    // Colores
+                    colorFondo: config.estilo?.colorFondo || '#667eea', // Color principal del fondo
+                    colorFondo2: config.estilo?.colorFondo2 || '#764ba2', // Color secundario para gradiente
+                    colorTexto: config.estilo?.colorTexto || '#ffffff',
+                    
+                    // Tipografía
+                    fuentePrincipal: config.estilo?.fuentePrincipal || 'Arial, sans-serif',
+                    tamanoTemperatura: config.estilo?.tamanoTemperatura || 120, // Tamaño de la temperatura principal
+                    tamanoGrados: config.estilo?.tamanoGrados || 60, // Tamaño del símbolo de grados
+                    tamanoMensaje: config.estilo?.tamanoMensaje || 24, // Tamaño del mensaje
+                    tamanoUbicacion: config.estilo?.tamanoUbicacion || 18, // Tamaño de la ubicación
+                    tamanoFecha: config.estilo?.tamanoFecha || 16, // Tamaño de fecha/hora
+                    tamanoIcono: config.estilo?.tamanoIcono || 40, // Tamaño del icono del clima
+                    
+                    // Bordes y efectos
+                    bordeRadio: config.estilo?.bordeRadio || 20, // Radio de las esquinas
+                    transparencia: config.estilo?.transparencia || 1.0, // Transparencia del widget (0.0 a 1.0)
+                    sombra: config.estilo?.sombra || true // Mostrar sombra
+                };
+                
+                this.inicializar();
+                this.configurarPantalla();
+                this.configurarEstiloWidget();
+                this.configurarImagen();
+                this.actualizarFechaHora();
+                setInterval(() => this.actualizarFechaHora(), 60000);
+                setInterval(() => this.actualizarTemperatura(), 600000); // Cada 10 minutos
+            }
+
+            inicializar() {
+                this.actualizarTemperatura();
+            }
+
+            configurarPantalla() {
+                const container = document.getElementById('pantallaContainer');
+                container.style.width = `${this.ANCHO_PANTALLA}px`;
+                container.style.height = `${this.ALTO_PANTALLA}px`;
+            }
+
+            configurarEstiloWidget() {
+                const widget = document.getElementById('widgetTemperatura');
+                const temperatura = document.getElementById('temperatura');
+                const gradosSymbol = document.querySelector('.grados-simbolo');
+                const mensaje = document.getElementById('mensaje');
+                const ubicacion = document.getElementById('ubicacion');
+                const fechaHora = document.getElementById('fechaHora');
+                const iconoClima = document.getElementById('iconoClima');
+                
+                // Configurar tamaño del widget
+                widget.style.width = `${this.ESTILO.ancho}px`;
+                widget.style.height = `${this.ESTILO.alto}px`;
+                
+                // Configurar posición
+                this.configurarPosicionWidget(widget);
+                
+                // Configurar colores y fondo
+                if (this.ESTILO.colorFondo2 && this.ESTILO.colorFondo2 !== this.ESTILO.colorFondo) {
+                    widget.style.background = `linear-gradient(135deg, ${this.ESTILO.colorFondo} 0%, ${this.ESTILO.colorFondo2} 100%)`;
+                } else {
+                    widget.style.background = this.ESTILO.colorFondo;
+                }
+                widget.style.color = this.ESTILO.colorTexto;
+                widget.style.opacity = this.ESTILO.transparencia;
+                
+                // Configurar tipografía
+                widget.style.fontFamily = this.ESTILO.fuentePrincipal;
+                
+                // Configurar tamaños de texto
+                if (temperatura) temperatura.style.fontSize = `${this.ESTILO.tamanoTemperatura}px`;
+                if (gradosSymbol) gradosSymbol.style.fontSize = `${this.ESTILO.tamanoGrados}px`;
+                if (mensaje) mensaje.style.fontSize = `${this.ESTILO.tamanoMensaje}px`;
+                if (ubicacion) ubicacion.style.fontSize = `${this.ESTILO.tamanoUbicacion}px`;
+                if (fechaHora) fechaHora.style.fontSize = `${this.ESTILO.tamanoFecha}px`;
+                if (iconoClima) iconoClima.style.fontSize = `${this.ESTILO.tamanoIcono}px`;
+                
+                // Configurar bordes y efectos
+                widget.style.borderRadius = `${this.ESTILO.bordeRadio}px`;
+                if (!this.ESTILO.sombra) {
+                    widget.style.boxShadow = 'none';
+                }
+            }
+
+            configurarPosicionWidget(widget) {
+                const margen = 20; // Margen desde los bordes
+                
+                switch (this.ESTILO.posicion) {
+                    case 'superior-izquierda':
+                        widget.style.top = `${margen}px`;
+                        widget.style.left = `${margen}px`;
+                        widget.style.right = 'auto';
+                        widget.style.bottom = 'auto';
+                        break;
+                    case 'superior-derecha':
+                        widget.style.top = `${margen}px`;
+                        widget.style.right = `${margen}px`;
+                        widget.style.left = 'auto';
+                        widget.style.bottom = 'auto';
+                        break;
+                    case 'inferior-izquierda':
+                        widget.style.bottom = `${margen}px`;
+                        widget.style.left = `${margen}px`;
+                        widget.style.top = 'auto';
+                        widget.style.right = 'auto';
+                        break;
+                    case 'inferior-derecha':
+                        widget.style.bottom = `${margen}px`;
+                        widget.style.right = `${margen}px`;
+                        widget.style.top = 'auto';
+                        widget.style.left = 'auto';
+                        break;
+                    case 'centro':
+                        widget.style.top = '50%';
+                        widget.style.left = '50%';
+                        widget.style.transform = 'translate(-50%, -50%)';
+                        widget.style.right = 'auto';
+                        widget.style.bottom = 'auto';
+                        break;
+                    case 'personalizada':
+                        widget.style.top = `${this.ESTILO.posicionY}px`;
+                        widget.style.left = `${this.ESTILO.posicionX}px`;
+                        widget.style.right = 'auto';
+                        widget.style.bottom = 'auto';
+                        widget.style.transform = 'none';
+                        break;
+                    default:
+                        // Por defecto: superior-izquierda
+                        widget.style.top = `${margen}px`;
+                        widget.style.left = `${margen}px`;
+                        widget.style.right = 'auto';
+                        widget.style.bottom = 'auto';
+                }
+            }
+
+            configurarImagen() {
+                const container = document.getElementById('pantallaContainer');
+                const errorDiv = document.getElementById('errorImagen');
+                
+                // Crear una imagen temporal para verificar si carga
+                const img = new Image();
+                
+                img.onload = () => {
+                    // La imagen cargó correctamente
+                    container.style.backgroundImage = `url('${this.IMAGEN_URL}')`;
+                    errorDiv.style.display = 'none';
+                };
+                
+                img.onerror = () => {
+                    // Error al cargar la imagen, usar imagen por defecto
+                    console.warn('Error cargando imagen:', this.IMAGEN_URL);
+                    const imagenPorDefecto = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80';
+                    container.style.backgroundImage = `url('${imagenPorDefecto}')`;
+                    errorDiv.textContent = `Error: ${this.IMAGEN_URL}`;
+                    errorDiv.style.display = 'block';
+                    
+                    // Ocultar error después de 5 segundos
+                    setTimeout(() => {
+                        errorDiv.style.display = 'none';
+                    }, 5000);
+                };
+                
+                // Iniciar la carga de la imagen
+                img.src = this.IMAGEN_URL;
+            }
+
+            actualizarTemperatura() {
+                const temperatura = this.calcularTemperatura();
+                this.mostrarTemperatura({
+                    temperature: temperatura.temp,
+                    city: this.CIUDAD,
+                    country: this.PAIS,
+                    icon: temperatura.icono
+                });
+            }
+
+            calcularTemperatura() {
+                const ahora = new Date();
+                const hora = ahora.getHours();
+                const mes = ahora.getMonth();
+                const dia = ahora.getDate();
+
+                // Temperatura base según tu ubicación específica
+                let tempBase = 25;
+                
+                // Ajuste por latitud
+                tempBase = 30 - Math.abs(this.LATITUD) * 0.8;
+                
+                // Ajuste por altitud estimada
+                if (Math.abs(this.LATITUD) > 1) tempBase -= 5; // Zona andina
+                
+                // Ajuste por longitud (costa vs sierra)
+                if (this.LONGITUD > -80) tempBase += 2; // Zona costera
+
+                // Variaciones realistas
+                const variacionEstacional = Math.sin((mes - 3) * Math.PI / 6) * 3;
+                const variacionDiaria = Math.sin((hora - 6) * Math.PI / 12) * 8;
+                const variacionAleatoria = (dia % 7) - 3;
+
+                const temperatura = Math.round(Math.max(15, Math.min(40, 
+                    tempBase + variacionEstacional + variacionDiaria + variacionAleatoria
+                )));
+
+                // Determinar icono según temperatura y hora
+                let icono;
+                if (hora >= 6 && hora <= 18) {
+                    // Día
+                    if (temperatura > 32) icono = '🔥';
+                    else if (temperatura > 28) icono = '☀️';
+                    else if (temperatura > 24) icono = '🌤️';
+                    else if (temperatura > 20) icono = '⛅';
+                    else icono = '🌥️';
+                } else {
+                    // Noche
+                    if (temperatura > 28) icono = '🌙';
+                    else if (temperatura > 24) icono = '🌃';
+                    else if (temperatura > 20) icono = '🌌';
+                    else icono = '🌥️';
+                }
+
+                return { temp: temperatura, icono };
+            }
+
+            actualizarFechaHora() {
+                const ahora = new Date();
+                const opciones = { 
+                    weekday: 'long', 
+                    day: 'numeric',
+                    month: 'long',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                };
+                
+                const fechaHora = ahora.toLocaleDateString('es-ES', opciones);
+                document.getElementById('fechaHora').textContent = fechaHora;
+            }
+
+            mostrarTemperatura(clima) {
+                // Actualizar contenido
+                document.getElementById('temperatura').textContent = clima.temperature;
+                document.getElementById('tempMensaje').textContent = clima.temperature;
+                document.getElementById('iconoClima').textContent = clima.icon;
+                
+                let ubicacionTexto = `📍 ${clima.city}`;
+                if (clima.country && clima.city !== clima.country) {
+                    ubicacionTexto += `, ${clima.country}`;
+                }
+                document.getElementById('ubicacion').textContent = ubicacionTexto;
+
+                // Personalizar mensaje según temperatura
+                const mensaje = document.getElementById('mensaje');
+                if (clima.temperature > 32) {
+                    mensaje.innerHTML = `Hoy estamos a <span>${clima.temperature}</span>°<br>momento perfecto para<br><strong>refrescarte</strong>`;
+                } else if (clima.temperature > 28) {
+                    mensaje.innerHTML = `Hoy estamos a <span>${clima.temperature}</span>°<br>momento perfecto para<br><strong>llenarte de frescura</strong>`;
+                } else if (clima.temperature > 24) {
+                    mensaje.innerHTML = `Hoy estamos a <span>${clima.temperature}</span>°<br>momento perfecto para<br><strong>disfrutar el día</strong>`;
+                } else if (clima.temperature > 20) {
+                    mensaje.innerHTML = `Hoy estamos a <span>${clima.temperature}</span>°<br>momento perfecto para<br><strong>salir a caminar</strong>`;
+                } else {
+                    mensaje.innerHTML = `Hoy estamos a <span>${clima.temperature}</span>°<br>momento perfecto para<br><strong>algo caliente</strong>`;
+                }
+            }
+
+            // Método para cambiar imagen dinámicamente
+            cambiarImagen(nuevaUrl) {
+                this.IMAGEN_URL = nuevaUrl;
+                this.configurarImagen();
+            }
+        }
+
+        // ✅ La configuración ahora se carga desde config.js
+        let pantalla;
+
+        // Inicializar cuando la página cargue
+        document.addEventListener('DOMContentLoaded', () => {
+            pantalla = new PantallaPersonalizable(configuracion);
+        });
+
+        // Función opcional para cambiar imagen dinámicamente
+        function cambiarImagenPublicitaria(nuevaUrl) {
+            if (pantalla) {
+                pantalla.cambiarImagen(nuevaUrl);
+            }
+        }
+    </script>
+</body>
+</html>
