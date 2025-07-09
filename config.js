@@ -42,7 +42,7 @@ const configuracion = {
         tamanoIcono: 40,                // Tamaño del icono del clima
         
         // 🎭 EFECTOS VISUALES
-        bordeRadio: 'circular',                 // Redondez de las esquinas (0 = cuadrado, mayor número = más redondeado, 'circular' = circunferencia perfecta)
+        bordeRadio: 20,                 // Redondez de las esquinas (0 = cuadrado, mayor número = más redondeado, 'circular' = circunferencia perfecta)
         transparencia: 0.8,             // Transparencia del widget (1.0 = opaco, 0.8 = semi-transparente, 0.5 = muy transparente, 0.0 = invisible)
         sombra: true,                   // Mostrar sombra del widget (true o false)
         
