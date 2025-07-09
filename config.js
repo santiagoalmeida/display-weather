@@ -47,7 +47,7 @@ const configuracion = {
         sombra: true,                   // Mostrar sombra del widget (true o false)
         
         // 💬 MENSAJES PERSONALIZABLES
-        mostrarMensaje: false,           // Mostrar o ocultar completamente el mensaje de temperatura
+        mostrarMensaje: true,           // Mostrar o ocultar completamente el mensaje de temperatura
         mensajes: {
             // Mensajes según temperatura (puedes usar {temp} para insertar la temperatura)
             muyCaliente: {  // Más de 32°
